@@ -1,4 +1,4 @@
-from __future__ import annotation
+from __future__ import annotations
 
 import json
 import random
@@ -15,7 +15,7 @@ def set_seed(seed: int = 42) -> None:
 
         torch.manual_seed(seed)
         if torch.cuda.is_available():
-            troch.cuda.manual_seed_all(seed)
+            torch.cuda.manual_seed_all(seed)
     except ImportError:
         pass
 
