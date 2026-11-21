@@ -1,0 +1,17 @@
+numpy
+pandas
+scikit-learn
+matplotlib
+pillow
+tqdm
+gdown
+torch
+transformers>=4.44
+accelerate
+bitsandbytes
+sentence-transformers>=3.0
+chromadb>=0.5
+plotly
+umap-learn
+gradio>=4
+# optional, install last (pins older deps):  pip install ragatouille

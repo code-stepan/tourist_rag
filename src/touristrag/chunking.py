@@ -1,3 +1,4 @@
+"""Sentence-aware, token-budgeted chunking with contextual headers."""
 from __future__ import annotations
 
 import re
@@ -24,18 +25,12 @@ def _hard_split(sentence: str, count_tokens: Callable[[str], int], max_tokens: i
     return parts
 
 
-def chunk_text(
-    text: str,
-    count_tokens: Callable[[str], int],
-    max_tokens: int = 200,
-    overlap_sentences: int = 1
-) -> list[str]:
+def chunk_text(text: str, count_tokens: Callable[[str], int], max_tokens: int = 200,
+               overlap_sentences: int = 1) -> list[str]:
+    """Pack whole sentences into chunks of <= max_tokens, repeating the last sentence(s) as overlap."""
     sents: list[str] = []
     for s in split_sentences(text):
-        sents.extend(
-            _hard_split(s, count_tokens, max_tokens)
-            if count_tokens(s) > max_tokens
-            else [s])
+        sents.extend(_hard_split(s, count_tokens, max_tokens) if count_tokens(s) > max_tokens else [s])
     chunks, cur = [], []
     for s in sents:
         if cur and count_tokens(" ".join(cur + [s])) > max_tokens:
@@ -49,13 +44,10 @@ def chunk_text(
     return chunks
 
 
-def make_chunks(
-    places: pd.DataFrame,
-    count_tokens: Callable[[str], int] | None = None,
-    max_tokens: int = 200,
-    overlap_sentences: int = 1,
-    include_captions: bool = True
-) -> list[dict]:
+def make_chunks(places: pd.DataFrame, count_tokens: Callable[[str], int] | None = None, max_tokens: int = 200,
+                overlap_sentences: int = 1, include_captions: bool = True) -> list[dict]:
+    """One or more chunks per place. Every chunk is prefixed with 'Name (City).' so that a chunk
+    is self-contained for the retriever, the reranker and the LLM (contextual chunk headers)."""
     count_tokens = count_tokens or (lambda s: len(s.split()))
     chunks: list[dict] = []
     for r in places.itertuples(index=False):
@@ -65,15 +57,9 @@ def make_chunks(
                 "lon": None if pd.isna(r.lon) else float(r.lon)}
         body = r.description or ""
         for i, piece in enumerate(chunk_text(body, count_tokens, max_tokens, overlap_sentences)):
-            chunks.append({
-                **base,
-                "chunk_id": f"{r.place_id}#d{i}",
-                "chunk_type": "description",
-                "text": f"{header}. {piece}"})
+            chunks.append({**base, "chunk_id": f"{r.place_id}#d{i}", "chunk_type": "description",
+                           "text": f"{header}. {piece}"})
         if include_captions and r.caption:
-            chunks.append({
-                **base,
-                "chunk_id": f"{r.place_id}#c0",
-                "chunk_type": "caption",
-                "text": f"{header}. Как выглядит (по фотографии): {r.caption}"})
+            chunks.append({**base, "chunk_id": f"{r.place_id}#c0", "chunk_type": "caption",
+                           "text": f"{header}. Как выглядит (по фотографии): {r.caption}"})
     return chunks

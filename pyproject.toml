@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "touristrag"
+version = "0.1.0"
+description = "Russian-language tourist RAG: hybrid retrieval + reranking + RAGAS-style evaluation"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy", "pandas", "scikit-learn", "matplotlib", "pillow", "tqdm", "gdown",
+]
+
+[project.optional-dependencies]
+ml = [
+  "torch", "transformers>=4.44", "accelerate", "bitsandbytes",
+  "sentence-transformers>=3.0", "chromadb>=0.5",
+]
+viz = ["plotly", "umap-learn"]
+colbert = ["ragatouille>=0.0.8"]   # optional: may pin older deps, install last
+app = ["gradio>=4"]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

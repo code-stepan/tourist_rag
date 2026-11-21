@@ -21,12 +21,14 @@ def set_seed(seed: int = 42) -> None:
 
 
 def norm_text(s) -> str:
+    """Collapse whitespace; non-strings (NaN, None) become ''."""
     if not isinstance(s, str):
         return ""
     return re.sub(r"\s+", " ", s).strip()
 
 
 def extract_json(text: str):
+    """Pull the first JSON object/array out of an LLM reply (handles ``` fences and chatter)."""
     if not text:
         return None
     text = re.sub(r"```(?:json)?", "", text).strip()
@@ -42,6 +44,7 @@ def extract_json(text: str):
 
 
 def progress(it, **kw):
+    """tqdm if installed, otherwise a no-op iterator."""
     try:
         from tqdm.auto import tqdm
 
